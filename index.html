@@ -91,7 +91,8 @@
 </div>
 
 <script>
-  const API_URL = "https://script.google.com/macros/s/AKfycbzg4FE50_Bj9YCtwf8aOVWaOc8BFMZY01NgMgl4vpjSBmpupKdImieFspbauuD7vRVt/exec";
+  // URL NUEVA Y EXACTA DE TU APPS SCRIPT
+  const API_URL = "https://script.google.com/macros/s/AKfycbyqKdhXk8OUVdg5Qrt8AY1xj_pceYtljiBLPCqZdrZFFxUeC8n1ARJ7l6I_A8g47esa/exec";
 
   let codeReader = null;
   let isScanning = false;
@@ -176,37 +177,35 @@
     document.getElementById('scanGuide').classList.add('hidden');
   }
 
-  // Consulta por JSONP (Sin bloqueos de CORS entre servidores)
   function onQrDetected(ticketId) {
     document.getElementById('mainControls').classList.add('hidden');
     document.getElementById('loadingBox').classList.remove('hidden');
 
-    const callbackName = 'jsonp_callback_' + Date.now();
+    const callbackName = 'cb_' + Math.floor(Math.random() * 1000000);
     
-    // Timeout por si demora la conexión
-    const timeoutTimer = setTimeout(() => {
-      cleanup();
-      onError(new Error('Tiempo de espera agotado al conectar'));
-    }, 10000);
-
-    function cleanup() {
-      clearTimeout(timeoutTimer);
-      delete window[callbackName];
-      const el = document.getElementById(callbackName);
-      if (el) el.remove();
-    }
-
     window[callbackName] = function(data) {
       cleanup();
       onSuccess(data);
     };
+
+    const timeout = setTimeout(() => {
+      cleanup();
+      onError(new Error('Demora en la respuesta. Reintente.'));
+    }, 12000);
+
+    function cleanup() {
+      clearTimeout(timeout);
+      delete window[callbackName];
+      const tag = document.getElementById(callbackName);
+      if (tag) tag.remove();
+    }
 
     const script = document.createElement('script');
     script.id = callbackName;
     script.src = `${API_URL}?ticketId=${encodeURIComponent(ticketId)}&callback=${callbackName}`;
     script.onerror = function() {
       cleanup();
-      onError(new Error('Error de red con la base de datos'));
+      onError(new Error('No se pudo conectar con la base de datos'));
     };
 
     document.body.appendChild(script);
