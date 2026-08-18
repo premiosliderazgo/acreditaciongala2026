@@ -7,96 +7,140 @@
   <script src="https://unpkg.com/@zxing/library@latest"></script>
 
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #060d1a; color: #ffffff; padding: 14px; text-align: center; }
-    .container { max-width: 420px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
-    
-    .header { border-bottom: 1px solid rgba(224, 169, 109, 0.3); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-    .title { font-size: 17px; font-weight: 800; color: #fef08a; text-align: left; }
-    .subtitle { font-size: 10px; color: #e0a96d; text-transform: uppercase; letter-spacing: 1px; }
-    .badge { background: #064e3b; color: #34d399; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; border: 1px solid #10b981; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Montserrat", "Segoe UI", Roboto, sans-serif; }
+    html, body { width: 100%; height: 100%; background-color: #030712; color: #ffffff; overflow: hidden; }
 
-    .tab-bar { display: flex; background: #0f172a; padding: 4px; border-radius: 12px; border: 1px solid #1e293b; }
+    /* PANTALLA 1: CONTROL Y ESCANEO */
+    #scannerScreen { display: flex; flex-direction: column; height: 100%; padding: 14px; }
+    .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid rgba(224, 169, 109, 0.25); }
+    .header-title { font-size: 16px; font-weight: 800; color: #fef08a; letter-spacing: 0.5px; }
+    .header-sub { font-size: 9px; color: #e0a96d; text-transform: uppercase; letter-spacing: 1px; }
+    .badge { background: #064e3b; color: #34d399; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 20px; border: 1px solid #10b981; }
+
+    .tab-bar { display: flex; background: #0f172a; padding: 4px; border-radius: 12px; border: 1px solid #1e293b; margin: 10px 0; }
     .tab-btn { flex: 1; padding: 10px; font-size: 12px; font-weight: 700; border: none; border-radius: 8px; background: transparent; color: #94a3b8; cursor: pointer; }
     .tab-btn.active { background: #f59e0b; color: #020617; }
 
-    .video-wrapper { position: relative; width: 100%; height: 330px; background: #000; border-radius: 16px; overflow: hidden; border: 2px solid #f59e0b; display: flex; align-items: center; justify-content: center; }
+    .camera-container { position: relative; flex: 1; min-height: 250px; background: #000; border-radius: 18px; overflow: hidden; border: 2px solid #f59e0b; display: flex; align-items: center; justify-content: center; }
     video { width: 100%; height: 100%; object-fit: cover; }
-    .scan-guide { position: absolute; width: 220px; height: 220px; border: 2px dashed #f59e0b; border-radius: 16px; pointer-events: none; box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.45); }
+    .scan-reticle { position: absolute; width: 240px; height: 240px; border: 2px dashed #f59e0b; border-radius: 20px; pointer-events: none; box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.5); }
+    .scan-line { position: absolute; width: 100%; height: 2px; background: #ef4444; top: 0; box-shadow: 0 0 10px #ef4444; animation: scanAnim 2s infinite ease-in-out; }
+    @keyframes scanAnim { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } }
+
+    .btn-start-cam { position: absolute; z-index: 10; background: linear-gradient(135deg, #f59e0b, #d97706); color: #020617; font-size: 16px; font-weight: 900; padding: 16px 28px; border-radius: 14px; border: none; cursor: pointer; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.5); }
+
+    .input-box { background: #0f172a; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 10px; border: 1px solid #1e293b; }
+    input[type="text"] { background: #020617; border: 1px solid #334155; border-radius: 10px; padding: 12px; color: #fff; font-size: 16px; font-weight: 700; text-align: center; text-transform: uppercase; width: 100%; }
+
+    /* PANTALLA 2: TARJETA TÓTEM A PANTALLA COMPLETA */
+    #totemScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #030712; z-index: 999; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 16px 14px 16px; }
+    .totem-card { flex: 1; border: 2px solid #e0a96d; border-radius: 20px; background: linear-gradient(180deg, #091222 0%, #030712 100%); display: flex; flex-direction: column; justify-content: space-between; padding: 20px 14px; text-align: center; box-shadow: inset 0 0 30px rgba(224, 169, 109, 0.15), 0 0 25px rgba(0, 0, 0, 0.9); }
     
-    .btn-start { background: linear-gradient(135deg, #f59e0b, #d97706); color: #020617; font-size: 15px; font-weight: 800; padding: 14px 24px; border-radius: 12px; border: none; cursor: pointer; width: 85%; z-index: 10; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); }
+    .status-badge-top { font-size: 14px; font-weight: 900; letter-spacing: 2px; padding: 6px 14px; border-radius: 30px; display: inline-block; margin: 0 auto; text-transform: uppercase; }
+    .status-success { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #10b981; }
+    .status-already { background: rgba(244, 63, 94, 0.2); color: #fb7185; border: 1px solid #f43f5e; }
+    .status-invalid { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid #f59e0b; }
 
-    .input-box { background: #0f172a; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 10px; border: 1px solid #1e293b; }
-    input[type="text"] { background: #020617; border: 1px solid #334155; border-radius: 10px; padding: 12px; color: #fff; font-size: 15px; font-weight: 700; text-align: center; text-transform: uppercase; width: 100%; }
+    .totem-name-box { margin: 15px 0; }
+    .totem-name { font-size: 24px; font-weight: 900; color: #ffffff; text-transform: uppercase; line-height: 1.2; word-break: break-word; }
+    .totem-rol { font-size: 14px; font-weight: 800; color: #e0a96d; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 6px; }
 
-    .card { border-radius: 16px; padding: 18px; text-align: center; display: flex; flex-direction: column; gap: 12px; }
-    .card-success { background: #064e3b; border: 2px solid #10b981; }
-    .card-already { background: #881337; border: 2px solid #f43f5e; }
-    .card-error { background: #78350f; border: 2px solid #f59e0b; }
+    .totem-mesa-box { background: rgba(224, 169, 109, 0.12); border: 2px solid #e0a96d; border-radius: 16px; padding: 12px; margin: 10px 0; }
+    .totem-mesa-label { font-size: 12px; font-weight: 900; color: #e0a96d; letter-spacing: 3px; }
+    .totem-mesa-num { font-size: 56px; font-weight: 900; color: #ffffff; line-height: 1; margin-top: 2px; }
 
-    .card-title { font-size: 20px; font-weight: 900; text-transform: uppercase; }
-    .guest-info { background: rgba(0,0,0,0.5); border-radius: 12px; padding: 12px; text-align: left; font-size: 13px; line-height: 1.5; border: 1px solid rgba(255,255,255,0.1); }
-    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; text-align: center; }
-    .grid-item { background: rgba(255,255,255,0.1); border-radius: 8px; padding: 6px; }
-    .grid-num { font-size: 22px; font-weight: 900; color: #ffffff; }
+    .totem-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0; }
+    .totem-grid-col { background: rgba(255, 255, 255, 0.05); border-radius: 10px; padding: 8px 4px; border: 1px solid rgba(255, 255, 255, 0.1); }
+    .grid-label { font-size: 9px; font-weight: 800; color: #94a3b8; letter-spacing: 1px; }
+    .grid-val { font-size: 20px; font-weight: 900; color: #fef08a; margin-top: 2px; }
 
-    .btn-next { background: rgba(255,255,255,0.15); color: #fff; font-size: 13px; font-weight: 800; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; width: 100%; text-transform: uppercase; margin-top: 6px; }
+    .totem-obs { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 10px; padding: 8px; font-size: 12px; color: #fef08a; font-weight: 700; margin-top: 6px; text-align: left; }
+
+    /* BOTÓN CONTINUAR FILA (CONTROL MANUAL) */
+    .btn-next-scan { background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; font-size: 15px; font-weight: 900; padding: 16px; border-radius: 14px; border: none; cursor: pointer; width: 100%; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); margin-top: 10px; }
+
     .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
-<div class="container">
-
-  <div class="header">
-    <div>
-      <div class="title">GALA LIDERAZGO</div>
-      <div class="subtitle">Acreditación & Control 2026</div>
+  <!-- PANTALLA 1: CÁMARA Y CONTROL -->
+  <div id="scannerScreen">
+    <div class="header">
+      <div>
+        <div class="header-title">GALA LIDERAZGO</div>
+        <div class="header-sub">Acreditación 2026</div>
+      </div>
+      <div class="badge">ONLINE</div>
     </div>
-    <div class="badge">ONLINE</div>
-  </div>
 
-  <div id="mainControls">
     <div class="tab-bar">
       <button id="tabCam" class="tab-btn active" onclick="switchTab('cam')">📷 CÁMARA VIVO</button>
       <button id="tabUsb" class="tab-btn" onclick="switchTab('usb')">⌨️ MANUAL / USB</button>
     </div>
 
-    <div id="panelCam" class="video-wrapper" style="margin-top: 10px;">
+    <div id="panelCam" class="camera-container">
       <video id="videoElement" playsinline autoplay muted></video>
-      <div id="scanGuide" class="scan-guide hidden"></div>
-      <div id="btnStartPrompt" style="position: absolute;">
-        <button class="btn-start" onclick="initLiveCamera()">▶ INICIAR CÁMARA</button>
+      <div id="scanReticle" class="scan-reticle hidden">
+        <div class="scan-line"></div>
+      </div>
+      <button id="btnStartCam" class="btn-start-cam" onclick="initCamera()">▶ INICIAR CÁMARA</button>
+    </div>
+
+    <div id="panelUsb" class="input-box hidden">
+      <p style="font-size: 13px; color: #94a3b8;">Código de Ticket:</p>
+      <input type="text" id="manualInput" placeholder="Ej: CLI-0011-9c7b1c8c">
+      <button class="btn-start-cam" style="position: static; width: 100%; margin-top: 10px;" onclick="submitManual()">VALIDAR</button>
+    </div>
+
+    <div style="font-size: 10px; color: #475569; text-align: center; margin-top: 10px;">
+      Gala Liderazgo 2026 &copy; Salones del Puerto
+    </div>
+  </div>
+
+  <!-- PANTALLA 2: TARJETA TÓTEM A PANTALLA COMPLETA -->
+  <div id="totemScreen" class="hidden">
+    <div class="totem-card">
+      <div id="statusBadge" class="status-badge-top status-success">ACCESO AUTORIZADO</div>
+
+      <div class="totem-name-box">
+        <div id="cardNombre" class="totem-name">NOMBRE DEL INVITADO</div>
+        <div id="cardRol" class="totem-rol">INVITADO ESPECIAL</div>
+      </div>
+
+      <div class="totem-mesa-box">
+        <div class="totem-mesa-label">MESA ASIGNADA</div>
+        <div id="cardMesa" class="totem-mesa-num">00</div>
+      </div>
+
+      <div class="totem-grid">
+        <div class="totem-grid-col">
+          <div class="grid-label">TARJETA N°</div>
+          <div id="cardVisual" class="grid-val">---</div>
+        </div>
+        <div class="totem-grid-col">
+          <div class="grid-label">GRUPO</div>
+          <div id="cardGrupo" class="grid-val">-</div>
+        </div>
+        <div class="totem-grid-col">
+          <div class="grid-label">ORDEN</div>
+          <div id="cardOrden" class="grid-val">-</div>
+        </div>
+      </div>
+
+      <div id="cardObsBox" class="totem-obs hidden">
+        <strong>OBS:</strong> <span id="cardObs"></span>
       </div>
     </div>
 
-    <div id="panelUsb" class="input-box hidden" style="margin-top: 10px;">
-      <p style="font-size: 13px; color: #94a3b8;">Código de Ticket:</p>
-      <input type="text" id="manualInput" placeholder="Ej: CLI-0011-9c7b1c8c">
-      <button class="btn-start" style="width: 100%; margin-top: 8px;" onclick="submitManual()">VALIDAR TICKET</button>
-    </div>
+    <button class="btn-next-scan" onclick="returnToScanning()">▶ CONTINUAR FILA / SIGUIENTE</button>
   </div>
-
-  <div id="loadingBox" class="card card-error hidden">
-    <div style="font-size: 18px; font-weight: 800;">⏳ VALIDANDO TICKET...</div>
-    <p style="font-size: 12px; color: #fef08a;">Consultando base de datos y generando Tótem</p>
-  </div>
-
-  <div id="resultBox" class="hidden"></div>
-
-  <div style="font-size: 10px; color: #64748b; margin-top: 8px;">
-    Gala Liderazgo 2026 &copy; Salones del Puerto
-  </div>
-
-</div>
 
 <script>
-  // URL NUEVA Y EXACTA DE TU APPS SCRIPT
   const API_URL = "https://script.google.com/macros/s/AKfycbyqKdhXk8OUVdg5Qrt8AY1xj_pceYtljiBLPCqZdrZFFxUeC8n1ARJ7l6I_A8g47esa/exec";
 
   let codeReader = null;
   let isScanning = false;
-  let autoResetTimer = null;
   let audioContext = null;
 
   function initAudio() {
@@ -132,12 +176,12 @@
   }
 
   function switchTab(mode) {
-    document.getElementById('resultBox').classList.add('hidden');
     if (mode === 'cam') {
       document.getElementById('panelCam').classList.remove('hidden');
       document.getElementById('panelUsb').classList.add('hidden');
       document.getElementById('tabCam').className = 'tab-btn active';
       document.getElementById('tabUsb').className = 'tab-btn';
+      initCamera();
     } else {
       stopCamera();
       document.getElementById('panelCam').classList.add('hidden');
@@ -148,16 +192,24 @@
     }
   }
 
-  async function initLiveCamera() {
+  async function initCamera() {
     initAudio();
-    document.getElementById('btnStartPrompt').classList.add('hidden');
-    document.getElementById('scanGuide').classList.remove('hidden');
+    document.getElementById('btnStartCam').classList.add('hidden');
+    document.getElementById('scanReticle').classList.remove('hidden');
 
     if (!codeReader) codeReader = new ZXing.BrowserQRCodeReader();
 
     try {
+      const constraints = {
+        video: {
+          facingMode: { ideal: "environment" },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        }
+      };
+
       isScanning = true;
-      await codeReader.decodeFromVideoDevice(undefined, 'videoElement', (result, err) => {
+      await codeReader.decodeFromConstraints(constraints, 'videoElement', (result, err) => {
         if (result && isScanning) {
           isScanning = false;
           onQrDetected(result.text.trim());
@@ -165,36 +217,27 @@
       });
     } catch (err) {
       alert("Error al iniciar cámara: " + err.message);
-      document.getElementById('btnStartPrompt').classList.remove('hidden');
-      document.getElementById('scanGuide').classList.add('hidden');
+      document.getElementById('btnStartCam').classList.remove('hidden');
+      document.getElementById('scanReticle').classList.add('hidden');
     }
   }
 
   function stopCamera() {
     isScanning = false;
     if (codeReader) codeReader.reset();
-    document.getElementById('btnStartPrompt').classList.remove('hidden');
-    document.getElementById('scanGuide').classList.add('hidden');
+    document.getElementById('btnStartCam').classList.remove('hidden');
+    document.getElementById('scanReticle').classList.add('hidden');
   }
 
   function onQrDetected(ticketId) {
-    document.getElementById('mainControls').classList.add('hidden');
-    document.getElementById('loadingBox').classList.remove('hidden');
-
     const callbackName = 'cb_' + Math.floor(Math.random() * 1000000);
     
     window[callbackName] = function(data) {
       cleanup();
-      onSuccess(data);
+      renderTotemScreen(data);
     };
 
-    const timeout = setTimeout(() => {
-      cleanup();
-      onError(new Error('Demora en la respuesta. Reintente.'));
-    }, 12000);
-
     function cleanup() {
-      clearTimeout(timeout);
       delete window[callbackName];
       const tag = document.getElementById(callbackName);
       if (tag) tag.remove();
@@ -205,7 +248,8 @@
     script.src = `${API_URL}?ticketId=${encodeURIComponent(ticketId)}&callback=${callbackName}`;
     script.onerror = function() {
       cleanup();
-      onError(new Error('No se pudo conectar con la base de datos'));
+      alert('Error de conexión con el servidor. Reintente.');
+      returnToScanning();
     };
 
     document.body.appendChild(script);
@@ -220,69 +264,52 @@
     }
   }
 
-  function onSuccess(res) {
-    document.getElementById('loadingBox').classList.add('hidden');
-    const resBox = document.getElementById('resultBox');
-    resBox.classList.remove('hidden');
-
-    let html = '';
+  function renderTotemScreen(res) {
+    const badge = document.getElementById('statusBadge');
+    
     if (res.status === 'SUCCESS') {
       playSound('success');
-      html += '<div class="card card-success">';
-      html += '<div class="card-title" style="color: #34d399;">✅ ACCESO AUTORIZADO</div>';
-      html += '<p style="font-size: 11px; color: #a7f3d0;">Placa Tótem generada y enviada a pantalla</p>';
+      badge.className = 'status-badge-top status-success';
+      badge.innerText = 'ACCESO AUTORIZADO';
     } else if (res.status === 'ALREADY_USED') {
       playSound('error');
-      html += '<div class="card card-already">';
-      html += '<div class="card-title" style="color: #fb7185;">⚠️ YA INGRESADO</div>';
-      html += '<p style="font-size: 11px; color: #fecdd3;">Ingresó previamente a las ' + (res.horaIngreso || '') + '</p>';
+      badge.className = 'status-badge-top status-already';
+      badge.innerText = 'YA INGRESADO (' + (res.horaIngreso || '') + ')';
     } else {
       playSound('error');
-      html += '<div class="card card-error">';
-      html += '<div class="card-title" style="color: #fbbf24;">❌ TICKET INVÁLIDO</div>';
-      html += '<p style="font-size: 11px;">No figura en la base de datos</p>';
+      badge.className = 'status-badge-top status-invalid';
+      badge.innerText = 'TICKET INVÁLIDO';
     }
 
-    html += '<div class="guest-info">';
-    html += '<div><strong>INVITADO:</strong> ' + (res.nombre || 'DESCONOCIDO') + '</div>';
-    html += '<div><strong>ROL:</strong> ' + (res.rol || '---') + '</div>';
-    html += '<div class="grid-3">';
-    html += '<div class="grid-item"><div style="font-size:9px; color:#e0a96d;">MESA</div><div class="grid-num">' + (res.mesa || '-') + '</div></div>';
-    html += '<div class="grid-item"><div style="font-size:9px; color:#cbd5e1;">GRUPO</div><div class="grid-num">' + (res.grupo || '-') + '</div></div>';
-    html += '<div class="grid-item"><div style="font-size:9px; color:#cbd5e1;">ORDEN</div><div class="grid-num">' + (res.orden || '-') + '</div></div>';
-    html += '</div>';
+    document.getElementById('cardNombre').innerText = res.nombre || 'INVITADO NO ENCONTRADO';
+    document.getElementById('cardRol').innerText = res.rol || '---';
+    document.getElementById('cardMesa').innerText = res.mesa || '-';
+    document.getElementById('cardVisual').innerText = res.numTarjeta || '---';
+    document.getElementById('cardGrupo').innerText = res.grupo || '-';
+    document.getElementById('cardOrden').innerText = res.orden || '-';
 
-    if (res.notas) {
-      html += '<div style="margin-top:6px; padding:6px; background:rgba(245,158,11,0.25); border-radius:6px; font-size:11px;">';
-      html += '<strong>OBS:</strong> ' + res.notas;
-      html += '</div>';
+    const obsBox = document.getElementById('cardObsBox');
+    if (res.notas && res.notas.trim() !== '') {
+      document.getElementById('cardObs').innerText = res.notas;
+      obsBox.classList.remove('hidden');
+    } else {
+      obsBox.classList.add('hidden');
     }
 
-    html += '</div>';
-    html += '<button class="btn-next" onclick="resetToScan()">Siguiente Escaneo (4s)</button>';
-    html += '</div>';
-
-    resBox.innerHTML = html;
-    clearTimeout(autoResetTimer);
-    autoResetTimer = setTimeout(resetToScan, 4000);
+    document.getElementById('scannerScreen').classList.add('hidden');
+    document.getElementById('totemScreen').classList.remove('hidden');
   }
 
-  function onError(err) {
-    playSound('error');
-    document.getElementById('loadingBox').classList.add('hidden');
-    const resBox = document.getElementById('resultBox');
-    resBox.classList.remove('hidden');
-    let html = '<div class="card card-error"><div class="card-title" style="color: #fbbf24;">⚠️ ERROR</div><p style="font-size:12px;">' + (err.message || 'Falla al conectar') + '</p><button class="btn-next" onclick="resetToScan()">Reintentar</button></div>';
-    resBox.innerHTML = html;
-  }
+  function returnToScanning() {
+    document.getElementById('totemScreen').classList.add('hidden');
+    document.getElementById('scannerScreen').classList.remove('hidden');
 
-  function resetToScan() {
-    clearTimeout(autoResetTimer);
-    document.getElementById('resultBox').classList.add('hidden');
-    document.getElementById('mainControls').classList.remove('hidden');
     const isUsb = !document.getElementById('panelUsb').classList.contains('hidden');
-    if (!isUsb) initLiveCamera();
-    else document.getElementById('manualInput').focus();
+    if (!isUsb) {
+      initCamera();
+    } else {
+      document.getElementById('manualInput').focus();
+    }
   }
 </script>
 </body>
