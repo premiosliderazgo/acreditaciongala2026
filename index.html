@@ -7,13 +7,13 @@
   <script src="https://unpkg.com/@zxing/library@latest"></script>
 
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Montserrat", "Segoe UI", Roboto, sans-serif; }
     html, body { width: 100%; height: 100%; background-color: #030712; color: #ffffff; overflow: hidden; }
 
-    /* PANTALLA 1: ESCANEO Y CONTROL */
+    /* PANTALLA 1: CONTROL Y ESCANEO */
     #scannerScreen { display: flex; flex-direction: column; height: 100%; padding: 14px; }
     .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid rgba(224, 169, 109, 0.25); }
-    .header-title { font-size: 16px; font-weight: 800; color: #fef08a; }
+    .header-title { font-size: 16px; font-weight: 800; color: #fef08a; letter-spacing: 0.5px; }
     .header-sub { font-size: 9px; color: #e0a96d; text-transform: uppercase; letter-spacing: 1px; }
     .badge { background: #064e3b; color: #34d399; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 20px; border: 1px solid #10b981; }
 
@@ -24,38 +24,38 @@
     .camera-container { position: relative; flex: 1; min-height: 250px; background: #000; border-radius: 18px; overflow: hidden; border: 2px solid #f59e0b; display: flex; align-items: center; justify-content: center; }
     video { width: 100%; height: 100%; object-fit: cover; }
     .scan-reticle { position: absolute; width: 230px; height: 230px; border: 2px dashed #f59e0b; border-radius: 20px; pointer-events: none; box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.5); }
-    
+
     .btn-start-cam { position: absolute; z-index: 10; background: linear-gradient(135deg, #f59e0b, #d97706); color: #020617; font-size: 16px; font-weight: 900; padding: 16px 28px; border-radius: 14px; border: none; cursor: pointer; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.5); }
 
     .input-box { background: #0f172a; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 10px; border: 1px solid #1e293b; }
     input[type="text"] { background: #020617; border: 1px solid #334155; border-radius: 10px; padding: 12px; color: #fff; font-size: 16px; font-weight: 700; text-align: center; text-transform: uppercase; width: 100%; }
 
-    /* PANTALLA 2: TARJETA TÓTEM A PANTALLA COMPLETA */
-    #totemScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #030712; z-index: 999; display: flex; flex-direction: column; justify-content: space-between; padding: 18px 14px 12px 14px; }
-    .totem-card { flex: 1; border: 2px solid #e0a96d; border-radius: 20px; background: linear-gradient(180deg, #091222 0%, #030712 100%); display: flex; flex-direction: column; justify-content: space-between; padding: 18px 12px; text-align: center; box-shadow: inset 0 0 30px rgba(224, 169, 109, 0.15), 0 0 25px rgba(0, 0, 0, 0.9); }
+    /* PANTALLA 2: TARJETA DE CONTROL A PANTALLA COMPLETA */
+    #totemScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #030712; z-index: 999; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 16px 14px 16px; }
+    .totem-card { flex: 1; border: 2px solid #e0a96d; border-radius: 20px; background: linear-gradient(180deg, #091222 0%, #030712 100%); display: flex; flex-direction: column; justify-content: space-between; padding: 20px 14px; text-align: center; box-shadow: inset 0 0 30px rgba(224, 169, 109, 0.15), 0 0 25px rgba(0, 0, 0, 0.9); }
     
-    .status-badge-top { font-size: 13px; font-weight: 900; letter-spacing: 2px; padding: 6px 14px; border-radius: 30px; display: inline-block; margin: 0 auto; text-transform: uppercase; }
+    .status-badge-top { font-size: 14px; font-weight: 900; letter-spacing: 2px; padding: 6px 14px; border-radius: 30px; display: inline-block; margin: 0 auto; text-transform: uppercase; }
     .status-success { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #10b981; }
     .status-already { background: rgba(244, 63, 94, 0.2); color: #fb7185; border: 1px solid #f43f5e; }
     .status-invalid { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid #f59e0b; }
 
-    .totem-name-box { margin: 10px 0; }
-    .totem-name { font-size: 22px; font-weight: 900; color: #ffffff; text-transform: uppercase; line-height: 1.2; word-break: break-word; }
-    .totem-rol { font-size: 13px; font-weight: 800; color: #e0a96d; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; }
+    .totem-name-box { margin: 15px 0; }
+    .totem-name { font-size: 24px; font-weight: 900; color: #ffffff; text-transform: uppercase; line-height: 1.2; word-break: break-word; }
+    .totem-rol { font-size: 14px; font-weight: 800; color: #e0a96d; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 6px; }
 
-    .totem-mesa-box { background: rgba(224, 169, 109, 0.12); border: 2px solid #e0a96d; border-radius: 16px; padding: 10px; margin: 8px 0; }
-    .totem-mesa-label { font-size: 11px; font-weight: 900; color: #e0a96d; letter-spacing: 3px; }
-    .totem-mesa-num { font-size: 52px; font-weight: 900; color: #ffffff; line-height: 1; margin-top: 2px; }
+    .totem-mesa-box { background: rgba(224, 169, 109, 0.12); border: 2px solid #e0a96d; border-radius: 16px; padding: 12px; margin: 10px 0; }
+    .totem-mesa-label { font-size: 12px; font-weight: 900; color: #e0a96d; letter-spacing: 3px; }
+    .totem-mesa-num { font-size: 56px; font-weight: 900; color: #ffffff; line-height: 1; margin-top: 2px; }
 
-    .totem-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0; }
-    .totem-grid-col { background: rgba(255, 255, 255, 0.05); border-radius: 10px; padding: 6px 2px; border: 1px solid rgba(255, 255, 255, 0.1); }
+    .totem-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0; }
+    .totem-grid-col { background: rgba(255, 255, 255, 0.05); border-radius: 10px; padding: 8px 4px; border: 1px solid rgba(255, 255, 255, 0.1); }
     .grid-label { font-size: 9px; font-weight: 800; color: #94a3b8; letter-spacing: 1px; }
-    .grid-val { font-size: 18px; font-weight: 900; color: #fef08a; margin-top: 2px; }
+    .grid-val { font-size: 20px; font-weight: 900; color: #fef08a; margin-top: 2px; }
 
-    .totem-obs { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 10px; padding: 6px 8px; font-size: 11px; color: #fef08a; font-weight: 700; margin-top: 4px; text-align: left; }
+    .totem-obs { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 10px; padding: 8px; font-size: 12px; color: #fef08a; font-weight: 700; margin-top: 6px; text-align: left; }
 
     /* BOTÓN CONTINUAR FILA */
-    .btn-next-scan { background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; font-size: 15px; font-weight: 900; padding: 15px; border-radius: 14px; border: none; cursor: pointer; width: 100%; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); margin-top: 8px; }
+    .btn-next-scan { background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; font-size: 15px; font-weight: 900; padding: 16px; border-radius: 14px; border: none; cursor: pointer; width: 100%; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); margin-top: 10px; }
 
     .hidden { display: none !important; }
   </style>
@@ -89,12 +89,12 @@
       <button class="btn-start-cam" style="position: static; width: 100%; margin-top: 10px;" onclick="submitManual()">VALIDAR</button>
     </div>
 
-    <div style="font-size: 10px; color: #475569; text-align: center; margin-top: 8px;">
+    <div style="font-size: 10px; color: #475569; text-align: center; margin-top: 10px;">
       Gala Liderazgo 2026 &copy; Salones del Puerto
     </div>
   </div>
 
-  <!-- PANTALLA 2: TARJETA TÓTEM A PANTALLA COMPLETA -->
+  <!-- PANTALLA 2: TARJETA A PANTALLA COMPLETA -->
   <div id="totemScreen" class="hidden">
     <div class="totem-card">
       <div id="statusBadge" class="status-badge-top status-success">ACCESO AUTORIZADO</div>
@@ -197,17 +197,33 @@
 
     try {
       isScanning = true;
-      // Usar detección natural de ZXing para máxima velocidad de enfoque
-      await codeReader.decodeFromVideoDevice(undefined, 'videoElement', (result, err) => {
+      const constraints = {
+        video: {
+          facingMode: "environment",
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      };
+
+      await codeReader.decodeFromConstraints(constraints, 'videoElement', (result, err) => {
         if (result && isScanning) {
           isScanning = false;
           onQrDetected(result.text.trim());
         }
       });
     } catch (err) {
-      alert("Error al iniciar cámara: " + err.message);
-      document.getElementById('btnStartCam').classList.remove('hidden');
-      document.getElementById('scanReticle').classList.add('hidden');
+      try {
+        await codeReader.decodeFromVideoDevice(undefined, 'videoElement', (result, err) => {
+          if (result && isScanning) {
+            isScanning = false;
+            onQrDetected(result.text.trim());
+          }
+        });
+      } catch (fallbackErr) {
+        alert("Error al iniciar cámara: " + fallbackErr.message);
+        document.getElementById('btnStartCam').classList.remove('hidden');
+        document.getElementById('scanReticle').classList.add('hidden');
+      }
     }
   }
 
