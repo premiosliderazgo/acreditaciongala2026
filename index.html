@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Acreditación Gala 2026</title>
-  <!-- Motor ZXing para video continuo -->
   <script src="https://unpkg.com/@zxing/library@latest"></script>
 
   <style>
@@ -41,7 +40,7 @@
     .grid-item { background: rgba(255,255,255,0.1); border-radius: 8px; padding: 6px; }
     .grid-num { font-size: 22px; font-weight: 900; color: #ffffff; }
 
-    .btn-next { background: rgba(255,255,255,0.15); color: #fff; font-size: 13px; font-weight: 800; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; width: 100%; text-transform: uppercase; }
+    .btn-next { background: rgba(255,255,255,0.15); color: #fff; font-size: 13px; font-weight: 800; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; width: 100%; text-transform: uppercase; margin-top: 6px; }
     .hidden { display: none !important; }
   </style>
 </head>
@@ -92,7 +91,6 @@
 </div>
 
 <script>
-  // Enlace directo a tu base de datos de Google Apps Script
   const API_URL = "https://script.google.com/macros/s/AKfycbzg4FE50_Bj9YCtwf8aOVWaOc8BFMZY01NgMgl4vpjSBmpupKdImieFspbauuD7vRVt/exec";
 
   let codeReader = null;
@@ -115,7 +113,6 @@
       gain.connect(audioContext.destination);
 
       if (type === 'success') {
-        // Pitido agudo de confirmación
         osc.frequency.setValueAtTime(587.33, audioContext.currentTime);
         osc.frequency.setValueAtTime(880.00, audioContext.currentTime + 0.08);
         gain.gain.setValueAtTime(0.3, audioContext.currentTime);
@@ -123,7 +120,6 @@
         osc.start();
         osc.stop(audioContext.currentTime + 0.25);
       } else {
-        // Tono grave de error
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(220, audioContext.currentTime);
         gain.gain.setValueAtTime(0.4, audioContext.currentTime);
@@ -184,10 +180,14 @@
     document.getElementById('mainControls').classList.add('hidden');
     document.getElementById('loadingBox').classList.remove('hidden');
 
-    fetch(`${API_URL}?ticketId=${encodeURIComponent(ticketId)}`)
-      .then(res => res.json())
-      .then(data => onSuccess(data))
-      .catch(err => onError(err));
+    fetch(`${API_URL}?ticketId=${encodeURIComponent(ticketId)}`, {
+      method: 'GET',
+      mode: 'cors',
+      redirect: 'follow'
+    })
+    .then(res => res.json())
+    .then(data => onSuccess(data))
+    .catch(err => onError(err));
   }
 
   function submitManual() {
@@ -214,7 +214,7 @@
       playSound('error');
       html += '<div class="card card-already">';
       html += '<div class="card-title" style="color: #fb7185;">⚠️ YA INGRESADO</div>';
-      html += '<p style="font-size: 11px; color: #fecdd3;">Ingresó a las ' + (res.horaIngreso || '') + '</p>';
+      html += '<p style="font-size: 11px; color: #fecdd3;">Ingresó previamente a las ' + (res.horaIngreso || '') + '</p>';
     } else {
       playSound('error');
       html += '<div class="card card-error">';
@@ -251,7 +251,7 @@
     document.getElementById('loadingBox').classList.add('hidden');
     const resBox = document.getElementById('resultBox');
     resBox.classList.remove('hidden');
-    let html = '<div class="card card-error"><div class="card-title" style="color: #fbbf24;">⚠️ ERROR</div><p style="font-size:12px;">' + (err.message || 'Falla al conectar') + '</p><button class="btn-next" style="margin-top:8px;" onclick="resetToScan()">Reintentar</button></div>';
+    let html = '<div class="card card-error"><div class="card-title" style="color: #fbbf24;">⚠️ ERROR</div><p style="font-size:12px;">' + (err.message || 'Falla al conectar') + '</p><button class="btn-next" onclick="resetToScan()">Reintentar</button></div>';
     resBox.innerHTML = html;
   }
 
