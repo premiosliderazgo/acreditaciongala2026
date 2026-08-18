@@ -176,18 +176,40 @@
     document.getElementById('scanGuide').classList.add('hidden');
   }
 
+  // Consulta por JSONP (Sin bloqueos de CORS entre servidores)
   function onQrDetected(ticketId) {
     document.getElementById('mainControls').classList.add('hidden');
     document.getElementById('loadingBox').classList.remove('hidden');
 
-    fetch(`${API_URL}?ticketId=${encodeURIComponent(ticketId)}`, {
-      method: 'GET',
-      mode: 'cors',
-      redirect: 'follow'
-    })
-    .then(res => res.json())
-    .then(data => onSuccess(data))
-    .catch(err => onError(err));
+    const callbackName = 'jsonp_callback_' + Date.now();
+    
+    // Timeout por si demora la conexión
+    const timeoutTimer = setTimeout(() => {
+      cleanup();
+      onError(new Error('Tiempo de espera agotado al conectar'));
+    }, 10000);
+
+    function cleanup() {
+      clearTimeout(timeoutTimer);
+      delete window[callbackName];
+      const el = document.getElementById(callbackName);
+      if (el) el.remove();
+    }
+
+    window[callbackName] = function(data) {
+      cleanup();
+      onSuccess(data);
+    };
+
+    const script = document.createElement('script');
+    script.id = callbackName;
+    script.src = `${API_URL}?ticketId=${encodeURIComponent(ticketId)}&callback=${callbackName}`;
+    script.onerror = function() {
+      cleanup();
+      onError(new Error('Error de red con la base de datos'));
+    };
+
+    document.body.appendChild(script);
   }
 
   function submitManual() {
